@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,12 @@ public class App {
 	    
 	    Pasajero p6 = new Pasajero("Pedro", "Gonzalez", "Hernandez", 
 	        LocalDate.of(1978, 9, 3), Genero.MASCULINO);
+	    
+	    Pasajero p7 = new Pasajero("Cesar", "Fernandez", "Lopez", 
+		        LocalDate.of(1998, 1, 26), Genero.MASCULINO);
+	    
+	    Pasajero p8 = new Pasajero("Lucia", "Contreras", "Martinez", 
+		        LocalDate.of(1992, 2, 22), Genero.FEMENINO);
 
 	    // ✅ Vuelos con builder (clase normal)
 	    Vuelo vuelo1 = Vuelo.builder()
@@ -45,7 +52,7 @@ public class App {
 	        .fechaLlegada(LocalDate.of(2026, 6, 10))
 	        .horaLlegada(LocalTime.of(11, 45))
 	        .numeroPlazas(3)
-	        .pasajeros(List.of(p1, p2))
+	        .pasajeros(List.of(p1, p2, p8))
 	        .build();
 	        
 	    Vuelo vuelo2 = Vuelo.builder()
@@ -56,7 +63,7 @@ public class App {
 	        .fechaLlegada(LocalDate.of(2026, 6, 13))
 	        .horaLlegada(LocalTime.of(6, 30))
 	        .numeroPlazas(3)
-	        .pasajeros(List.of(p3, p4, p5))
+	        .pasajeros(List.of(p3, p4, p5, p7))
 	        .build();
 	        
 	    Vuelo vuelo3 = Vuelo.builder()
@@ -238,10 +245,51 @@ public class App {
 		- Nueva York (2026-05-30)*/
 	
 	
-	
-	
-	
-	
+	/* punto 7: Crear una colección que almacene los pasajeros, por el genero y la edad del pasajero*/
+// clave principal: género.       Map<Long, List<Pasajero>> → valor es el otro mapa.
+		Map<Genero, Map<Long, List<Pasajero>>> pasajerosPorGeneroYEdad = vuelos.stream()
+			    .flatMap(vuelo -> vuelo.getPasajeros().stream())
+			    .collect(Collectors.groupingBy(
+			        Pasajero::genero,  // Agrupa por género.
+			        TreeMap::new,   // TreeMap externo. Esto hace que las claves (géneros) se ordenen como esta en el Genero
+			        Collectors.groupingBy(
+			            p -> ChronoUnit.YEARS.between(p.fechaNacimiento(), LocalDate.now()),
+			            TreeMap::new,    // Hace que las edades estén ordenadas automáticamente.
+			            Collectors.toList()
+			        )
+			    ));
+			
+		System.out.println("Pasajeros por género y edad:");
+
+		pasajerosPorGeneroYEdad.entrySet().forEach(entryGenero -> {  // Recorre cada entrada del mapa.
+		    System.out.println("\nGénero: " + entryGenero.getKey());  //  devuelve el género.
+
+		    entryGenero.getValue().entrySet().forEach(entryEdad -> {//entryGenero.getValue() Es el mapa de edades de ese género.
+		        System.out.println("  Edad: " + entryEdad.getKey());  // Imprimir edad
+		        entryEdad.getValue().forEach(pasajero ->      // entryEdad.getValue() Devuelve: List<Pasajero>
+		            System.out.println("    - " + pasajero) // Recorre cada pasajero de esa edad.
+		        );
+		    });
+		});
+		
+		
+			
+// Punto 8:  Mostrar la colección anterior ordenada por el nombre y los apellidos de los pasajeros en orden natural.			
+		System.out.println("\nPasajeros por género y edad ordenados por nombre y apellidos:");
+
+		pasajerosPorGeneroYEdad.entrySet().forEach(entryGenero -> {
+		    System.out.println("\nGénero: " + entryGenero.getKey());
+
+		    entryGenero.getValue().entrySet().forEach(entryEdad -> {
+		        System.out.println("  Edad: " + entryEdad.getKey());
+
+		        entryEdad.getValue().stream()
+		            .sorted()
+		            .forEach(pasajero -> System.out.println("    - " + pasajero));
+		    });
+		});	
+			
+			
 	}
 	    
 }
